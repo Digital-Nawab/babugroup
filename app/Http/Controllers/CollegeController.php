@@ -8,6 +8,7 @@ use App\Models\Course;
 use App\Models\University;
 use App\Models\User;
 use App\Models\Year;
+use App\Models\CollegeCourses;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
@@ -144,20 +145,82 @@ class CollegeController extends Controller
         ]);
     }
 
-    public function collegeCourses($id){
-        if(Session::has('admin')){
-            $data['title'] = "College Details";
-            $data['nav'] = 'college';
-            $data['id'] = $id;
-            $college =  College::get();
-            $data['college_courses'] =  Course::get();
-            $semester =  Course::get();
-            $data['college_year'] = Year::firstWhere(['is_current' => 1, 'status' => 1]);
-//            $data['data'] =DB::table('academic_course')->where("institution_id", base64_decode($id))->paginate(20);
-//             echo '<pre>'; print_r($data); exit;
-            return view('admin.college.college-courses', $data);
-        }else{
-            return redirect('auth/dashboard');
+    public function collegeCourses($id)
+    {
+        if (!Session::has('admin')) {
+            return redirect()->route('auth.dashboard');
+        }
+        $collegeId = base64_decode($id);
+        // Use Eloquent with proper validation and eager loading for performance
+        $college = College::findOrFail($collegeId);
+
+        // Get courses related to the college's category
+        $collegeCourses = Course::where('category_id', $college->category_id)->get();
+
+        // Get current academic year with proper indexing
+        $collegeYear = Year::where('is_current', 1)->where('status', 1)->first();
+
+        return view('admin.college.college-courses', [
+            'title' => 'College Details',
+            'nav' => 'college',
+            'id' => $id,
+            'college' => $college,
+            'college_courses' => $collegeCourses,
+            'college_year' => $collegeYear
+        ]);
+    }
+
+    public function addCollegeCourses(Request $request)
+    {
+        if (!Session::has('admin')) {
+            return redirect()->route('auth.dashboard');
+        }
+
+        $admin = Session::get('admin');
+        echo '<pre>'; print_r($request->all()); exit;
+        try {
+            // Validate request data
+            $validatedData = $request->validate([
+                'college_id' => 'required|exists:colleges,id',
+                'year_id' => 'required|exists:years,id',
+                'semesters' => 'required|array',
+                'semesters.*' => 'required|array',
+                'semesters.*.*' => 'required|numeric|min:0',
+            ]);
+
+            $collegeId = base64_decode($validatedData['college_id']);
+            $yearId = $validatedData['year_id'];
+
+            // Bulk insert or update for efficiency
+            $dataToInsert = [];
+            foreach ($validatedData['semesters'] as $courseId => $semesterFees) {
+                if (!DB::table('courses')->where('id', $courseId)->exists()) {
+                    continue;
+                }
+
+                foreach ($semesterFees as $semesterNumber => $fee) {
+                    $dataToInsert[] = [
+                        'college_id' => $collegeId,
+                        'course_id' => $courseId,
+                        'year_id' => $yearId,
+                        'semesters' => $semesterNumber,
+                        'fee' => $fee,
+                        'added_by' => $admin->role_title,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+                }
+            }
+
+            if (!empty($dataToInsert)) {
+                CollegeCourses::upsert($dataToInsert, ['college_id', 'course_id', 'year_id', 'semesters'], ['fee', 'updated_at']);
+            }
+
+            return redirect()->back()->with(['success' => true, 'message' => 'Courses added successfully.']);
+        } catch (ValidationException $e) {
+            return redirect()->back()->withErrors($e->validator)->withInput();
+        } catch (Exception $e) {
+            return redirect()->back()->with(['error' => 'An unexpected error occurred. Please try again.'])->withInput();
         }
     }
 
