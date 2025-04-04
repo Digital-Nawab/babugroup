@@ -54,6 +54,14 @@
                         <li><a href="{{url('admin/fee/due-fee')}}">Due Fee</a></li>
                     </ul>
                 </li>
+                <li class="submenu">
+                    <a href="#"><i class="fas fa-user"></i> <span> Roles & Permissions </span> <span
+                            class="menu-arrow"></span></a>
+                    <ul>
+                        <li><a href="{{url('admin/roles')}}">Roles</a></li>
+                        <li><a href="{{url('admin/permission')}}">Permissions</a></li>
+                    </ul>
+                </li>
                 <li class="menu-title">
                     <span>Tools</span>
                 </li>

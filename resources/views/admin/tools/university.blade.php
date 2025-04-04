@@ -23,15 +23,16 @@
                     <h5 class="card-title">{{ $title }}</h5>
                 </div>
                 <div class="card-body">
-                    <form id="categoryForm">
+                    <form id="universityForm">
                         <div class="mb-3">
-                            <label class="form-label">Category Name</label>
-                            <input type="text" class="form-control" name="name" id="name" placeholder="Category Name"
+                            <label class="form-label">University Name</label>
+                            <input type="text" class="form-control" name="name" id="name" placeholder="University Name"
                                 required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Description</label>
-                            <textarea class="form-control" name="description" id="description" placeholder="Description" required></textarea>
+                            <label class="form-label">Location</label>
+                            <input type="text" class="form-control" name="location" id="location" placeholder="Location"
+                                required>
                         </div>
                         <div class="text-end">
                             <button type="submit" class="btn btn-primary">Submit</button>
@@ -43,7 +44,7 @@
         <div class="col-md-8">
             <div class="card">
                 <div class="card-header d-flex align-items-center justify-content-between flex-wrap pb-0">
-                    <h4 class="mb-3">College Category List</h4>
+                    <h4 class="mb-3">University List</h4>
                 </div>
                 <div class="card-body p-0">
                     <div class="row">
@@ -52,13 +53,13 @@
                                 <thead class="thead-light">
                                     <tr>
                                         <th>#</th>
-                                        <th>Category Name</th>
-                                        <th>Description</th>
+                                        <th>University Name</th>
+                                        <th>Location</th>
                                         <th>Status</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
-                                <tbody id="categoryTableBody">
+                                <tbody id="universityTableBody">
                                 </tbody>
                             </table>
                         </div>
@@ -69,24 +70,23 @@
     </div>
 </div>
 
-<div class="modal fade" id="editCategoryModal" tabindex="-1" aria-labelledby="editCategoryModalLabel"
-    aria-hidden="true">
+<div class="modal fade" id="editUniversityModal" tabindex="-1" aria-labelledby="editUniversityModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="editCategoryModalLabel">Edit Category</h5>
+                <h5 class="modal-title" id="editUniversityModalLabel">Edit University</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form id="editCategoryForm">
-                    <input type="hidden" id="editCategoryId">
+                <form id="editUniversityForm">
+                    <input type="hidden" id="editUniversId">
                     <div class="mb-3">
-                        <label for="editCategoryName" class="form-label">Category Name</label>
-                        <input type="text" class="form-control" id="editCategoryName" required>
+                        <label for="editUniversName" class="form-label">University Name</label>
+                        <input type="text" class="form-control" id="editUniversName" required>
                     </div>
                     <div class="mb-3">
-                        <label for="editCategoryDesc" class="form-label">Description</label>
-                        <input type="text" class="form-control" id="editCategoryDesc" required>
+                        <label for="editUniversLocation" class="form-label">Location</label>
+                        <input type="text" class="form-control" id="editUniversLocation" required>
                     </div>
                     <button type="submit" class="btn btn-primary">Update</button>
                 </form>
@@ -113,13 +113,13 @@
 <script>
     $(document).ready(function() {
 
-        fetchCategories();
+        fetchUniversities();
 
-        $('#categoryForm').submit(function (e) {
+        $('#universityForm').submit(function (e) {
             e.preventDefault();
 
             $.ajax({
-                url: "{{ url('admin/tools/add-category') }}",
+                url: "{{ url('admin/tools/add-university') }}",
                 type: "POST",
                 data: $(this).serialize(),
                 headers: {
@@ -128,9 +128,9 @@
                 success: function(response){
                     if(response.status === true) {
                         showToast(response.message, 'success');
-                        $('#categoryForm')[0].reset();
-                        fetchCategories();
-                        $("#categoryModal").modal("hide");
+                        $('#universityForm')[0].reset();
+                        fetchUniversities();
+                        $("#universityModal").modal("hide");
                     }else {
                         showToast("Failed to add Provider!", 'danger');
                     }
@@ -148,70 +148,70 @@
             })
         });
 
-        function fetchCategories() {
+        function fetchUniversities() {
             $.ajax({
-                url: "{{ url('admin/tools/get-category') }}",
+                url: "{{ url('admin/tools/get-university') }}",
                 type: "GET",
                 success: function (response) {
                     let rows = '';
-                    $.each(response, function (index, category) {
+                    $.each(response, function (index, university) {
                         rows += `<tr>
                             <td>${index + 1}</td>
-                            <td>${category.name}</td>
-                            <td>${category.description}</td>
+                            <td>${university.name}</td>
+                            <td>${university.location}</td>
                             <td>
                                 <div class="form-check form-switch">
                                     <input class="form-check-input toggleStatus" type="checkbox"
-                                        data-id="${category.id}" ${category.status == 1 ? 'checked' : ''}>
+                                        data-id="${university.id}" ${university.status == 1 ? 'checked' : ''}>
                                     <label class="form-check-label status-label">
-                                        ${category.status == 1 ? 'Active' : 'Inactive'}
+                                        ${university.status == 1 ? 'Active' : 'Inactive'}
                                     </label>
                                 </div>
                             </td>
                             <td>
-                                <button class="btn btn-sm btn-warning editcategory" 
-                                data-id="${category.id}" data-name="${category.name}" 
-                                data-description="${category.description}">Edit</button>
-                                <button class="btn btn-sm btn-danger deleteCategory" data-id="${category.id}">Delete</button>
+                                <button class="btn btn-sm btn-warning text-white editUniversity" 
+                                data-id="${university.id}" data-name="${university.name}" 
+                                data-location="${university.location}">Edit</button>
+                                <button class="btn btn-sm btn-danger deleteUniversity" data-id="${university.id}">Delete</button>
                             </td>
                         </tr>`;
                     });
-                    $("#categoryTableBody").html(rows);
+                    $("#universityTableBody").html(rows);
                 }
             });
         }
 
-        $(document).on('click', '.editcategory', function () {
-            let catId = $(this).data('id');
-            let catName = $(this).data('name');
-            let catedesc = $(this).data('description');
+        $(document).on('click', '.editUniversity', function () {
+            let universId = $(this).data('id');
+            let universName = $(this).data('name');
+            let universLocation = $(this).data('location');
 
-            $('#editCategoryModal #editCategoryId').val(catId);
-            $('#editCategoryModal #editCategoryName').val(catName);
-            $('#editCategoryModal #editCategoryDesc').val(catedesc);
-            $('#editCategoryModal').modal('show');
+            $('#editUniversityModal #editUniversId').val(universId);
+            $('#editUniversityModal #editUniversName').val(universName);
+            $('#editUniversityModal #editUniversLocation').val(universLocation);
+            $('#editUniversityModal').modal('show');
         });
 
-        $('#editCategoryForm').on('submit', function (e) {
+        $('#editUniversityForm').on('submit', function (e) {
             e.preventDefault();
-            let catId = $('#editCategoryId').val();
-            let catName = $('#editCategoryName').val();
-            let catedesc = $('#editCategoryDesc').val();
+            let universId = $('#editUniversId').val();
+            let universName = $('#editUniversName').val();
+            let universLocation = $('#editUniversLocation').val();
 
             $.ajax({
-                url: "{{ url('admin/tools/update-category') }}/" + catId,
+                url: "{{ url('admin/tools/update-university') }}/" + universId,
                 type: "POST",
                 data: {
-                    name: catName,
-                    description : catedesc,
+                    name: universName,
+                    location : universLocation,
                     _token: "{{ csrf_token() }}"
                 },
 
                 success: function (response){
                     if(response.status){
                         showToast(response.message, 'success');
-                        $('#editCategoryModal').modal('hide');
-                        fetchCategories();
+                        $('#editUniversityModal').modal('hide');
+                        fetchUniversities();
                     }
                 },
                 error: function (xhr) {
@@ -224,7 +224,7 @@
                         });
                         showToast(errorMessage, 'danger'); // Show error messages
                     } else if (xhr.status === 404) {
-                        showToast('Category not found!', 'danger');
+                        showToast('University not found!', 'danger');
                     } else {
                         showToast('Something went wrong!', 'danger');
                     }
@@ -239,7 +239,7 @@
             let statusLabel = $(this).closest("td").find(".status-label");
 
             $.ajax({
-                url: "{{ url('admin/tools/category-status') }}/" + univerId,
+                url: "{{ url('admin/tools/university-status') }}/" + univerId,
                 type: "POST",
                 data: {
                     _token: "{{ csrf_token() }}",
@@ -270,3 +270,5 @@
     });
 </script>
 @stop
+
+

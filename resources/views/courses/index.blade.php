@@ -117,11 +117,11 @@
                                 @endif
                                 </tbody>
                             </table>
-                            @if (count($data) != 0)
+                            {{-- @if (count($data) != 0)
                                 <div class="p-2">
                                     {!! $data->links('pagination::bootstrap-5') !!}
                                 </div>
-                            @endif
+                            @endif --}}
                         </div>
                     </div>
                 </div>

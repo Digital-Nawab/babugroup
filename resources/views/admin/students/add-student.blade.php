@@ -513,7 +513,7 @@
     </div>
 @stop
 @section('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    {{-- <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script type="text/javascript">
         /* Add */
         $(document).on("click", ".addAcademicFee", function() {
@@ -698,5 +698,5 @@
                 //console.log(value+" is not checked");
             }
         });
-    </script>
+    </script> --}}
 @stop

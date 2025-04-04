@@ -203,9 +203,9 @@
 
                         <input type="hidden" name="academic_year" id="academic_year" value="{!! $year->id !!}">
                         <div class="mb-3 col-12">
-                            <label for="college_id" class="form-label">Institute <span class="text-danger">*</span></label>
+                            <label for="college_id" class="form-label">College <span class="text-danger">*</span></label>
                             <select class="form-control select2 {{ $errors->has('college_id') ? 'is-invalid' : '' }}" name="college_id" id="institute" required>
-                                <option value="">Select Institute</option>
+                                <option value="">Select College</option>
                                 @foreach($college as $row)
                                     <option value="{{ $row->id }}" {{ old('college_id') == $row->id ? 'selected' : '' }}>
                                         {{ $row->college_name }}

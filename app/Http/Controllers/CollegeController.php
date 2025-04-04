@@ -15,7 +15,11 @@ use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\Encoders\AutoEncoder;
 use Intervention\Image\Encoders\WebpEncoder;
-use DB;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+
 class CollegeController extends Controller
 {
     public function index()
@@ -61,7 +65,7 @@ class CollegeController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email,' . $request->_id,
-            'password' => 'required|min:6|confirmed', // Increased min length for security
+            'password' => 'required|min:6|confirmed', 
             'college_name' => 'required|string|max:255',
             'slug_url' => 'required|string|max:255|unique:colleges,slug_url,' . $request->_id,
             'category_id' => 'required|integer|exists:categories,id',
@@ -72,15 +76,15 @@ class CollegeController extends Controller
             'gstn' => 'nullable|string|max:15|unique:colleges,gstn,' . $request->_id,
             'description' => 'nullable|string|max:1000',
             'address' => 'nullable|string|max:500',
-//            'logo' => 'nullable|image|mimes:jpeg,png,jpg, webp|max:500', // Added file validation
-            '_id' => 'nullable|string', // For updates
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:500', 
+            '_id' => 'nullable|string', 
             'status' => 'nullable|boolean'
         ]);
 
         try {
-            return \DB::transaction(function () use ($request, $validated) {
+            return DB::transaction(function () use ($request, $validated) {
             $imageData = [];
-            if ($request->hasFile('logo')) {
+            if($request->hasFile('logo')) {
                 $manager = new ImageManager(new Driver());
                 $path = 'assets/images/college/';
                 if (!is_dir($path)) {
@@ -88,11 +92,11 @@ class CollegeController extends Controller
                 }
                 $uploadedImage = $request->file('logo');
                 $image = $manager->read($uploadedImage);
-                $image->resize(200, 200);
+                $image->resize(100, 100);
                 $image->encode(new WebpEncoder(quality: 65));
-                $filename = uniqid() . '.webp';
-                $image->save($path . $filename);
-                $imageData['logo'] = $path . $filename;
+                $filename = uniqid() . '.' .'webp';
+                $image->save($path.$filename);
+                $imageData['logo'] = $path.$filename;
             }
 
             $collegeData = [

@@ -4,14 +4,89 @@ namespace App\Http\Controllers;
 
 use App\Models\University;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
-class UniversityController
+class UniversityController extends Controller
 {
-
     public function index()
     {
+        $title = "Add University"; 
         $data = University::paginate(10);
-        return view('universities.index', compact('data'));
+        return view('admin.tools.university', compact('title','data'));
+    }
+
+    public function store(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|unique:universities,name',
+            'location' => 'required|max:255',
+        ]);
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors()->all()
+            ], 422);
+        }
+        $university = University::create([
+            'name' => $request->name,
+            'location' => $request->location,
+        ]);
+        return response()->json([
+            'status' => true,
+            'message' => 'University added successfully!', 
+            'university' => $university
+        ], 200);
+    }
+
+    public function getUniversity(){
+        $data = University::latest()->get();
+        return response()->json($data);
+    }
+
+    public function updateUniversityStatus(Request $request, $id)
+    {
+        $request->validate([
+            'status' => 'required|boolean',
+        ]);
+        $university = University::findOrFail($id);
+        $university->status = $request->status;
+        $university->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'University status updated successfully'
+        ]);
+    }
+
+    public function updateUniversity(Request $request, $id)
+    {
+        $university = University::find($id);
+        if (!$university) {
+            return response()->json([
+                'status' => false,
+                'error' => 'University not found!'
+            ], 404);
+        }
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255|unique:universities,name,' . $id,
+            'location' => 'nullable|string|max:500',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors()->all()
+            ], 422);
+        }
+
+        $university->update([
+            'name' => $request->name,
+            'location' => $request->location,
+        ]);
+        return response()->json([
+            'status' => true,
+            'message' => 'University updated successfully!'
+        ], 200);
     }
 
 
@@ -34,51 +109,5 @@ class UniversityController
             return redirect()->back()->with('error', 'Failed to update status!');
         }
     }
-
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'location' => 'nullable|string|max:255',
-            'status' => 'boolean',
-        ]);
-
-//        echo '<pre>'; print_r($request->all());exit;
-
-        try {
-            if ($request->has('_id')) {
-                // Update existing university
-                $university = University::findOrFail(base64_decode($request->_id));
-                $university->update([
-                    'name' => $request->name,
-                    'location' => $request->location,
-                    'status' => $request->status ?? 1,
-                ]);
-
-                return redirect()->back()->withInput()->with('success', 'University updated successfully!');
-            } else {
-                // Create a new university
-                University::create([
-                    'name' => $request->name,
-                    'location' => $request->location,
-                    'status' => $request->status ?? 1,
-                ]);
-
-                return redirect()->back()->withInput()->with('success', 'University added successfully!');
-            }
-
-            return redirect()->back()->withInput()->with('success', 'University added successfully!');
-        } catch (\Exception $e) {
-            return redirect()->back()->withInput()->with('error', 'Failed to add university! Please try again.');
-        }
-    }
-
-    /**
-     * Display the specified resource.
-     */
 
 }
